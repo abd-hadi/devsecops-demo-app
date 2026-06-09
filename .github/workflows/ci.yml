@@ -11,11 +11,6 @@ permissions:
   contents: read
   id-token: write
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: devsecops-demo-app
-  ECR_REGISTRY: 676591241638.dkr.ecr.us-east-1.amazonaws.com
-
 jobs:
   security-scan:
     runs-on: ubuntu-latest
@@ -64,8 +59,8 @@ jobs:
         if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::676591241638:role/GitHubActions-DevSecOps-ECR
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         if: github.event_name == 'push'
@@ -74,6 +69,6 @@ jobs:
       - name: Tag and push image to ECR
         if: github.event_name == 'push'
         run: |
-          IMAGE_URI=${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}
+          IMAGE_URI=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
           docker tag devsecops-demo-app:${{ github.sha }} "$IMAGE_URI"
           docker push "$IMAGE_URI"
